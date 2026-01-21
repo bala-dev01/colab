@@ -15,7 +15,7 @@ export async function generateUI(prompt: string) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
 
         // We want structured output: simple HTML/Tailwind code for a UI component
         const systemPrompt = `
