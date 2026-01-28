@@ -15,34 +15,42 @@ export async function generateUI(prompt: string) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+        // Using Gemini 2.5 Flash Image (codename: Nano Banana)
+        // Fast, efficient image generation model
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" })
 
-        // We want structured output: simple HTML/Tailwind code for a UI component
-        const systemPrompt = `
-      You are an expert UI generator for a spatial computing interface.
-      The user will ask for a UI element (e.g., "login card", "graph", "profile badge").
-      
-      You must return ONLY valid HTML code with Tailwind CSS classes.
-      Do not include markdown backticks or explanations.
-      The HTML should be a single root element (like a div).
-      
-      Design guidelines:
-      - Use 'glassmorphism' (bg-white/10 backdrop-blur-md border border-white/20).
-      - Text should be white or light gray.
-      - Make it look futuristic and sleek.
-      - Keep it compact.
-    `
+        console.log("Generating Image for prompt:", prompt)
 
-        console.log("Generating UI for prompt:", prompt)
-        const result = await model.generateContent(`${systemPrompt}\n\nUser request: "${prompt}"`)
+        // Simple, direct prompt - this model is designed for image generation
+        const result = await model.generateContent(prompt)
         const response = await result.response
+
+        // console.log("Gemini Response structure:", JSON.stringify(response, null, 2)) // Too huge
+        console.log("Gemini Response received.")
+
+        // Extract Image Data
+        // Search all parts for image data
+        const parts = response.candidates?.[0]?.content?.parts || []
+
+        for (const part of parts) {
+            if ('inlineData' in part && part.inlineData) {
+                const base64Image = part.inlineData.data
+                const mimeType = part.inlineData.mimeType || "image/png"
+
+                const imgHtml = `<img src="data:${mimeType};base64,${base64Image}" alt="${prompt}" class="rounded-lg shadow-2xl border border-white/20" />`
+                return { content: imgHtml }
+            }
+        }
+
+        // Fallback: Check if text looks like a failure or valid content
         const text = response.text()
-        console.log("Gemini Response:", text.substring(0, 50) + "...")
 
-        // Cleanup potential markdown if Gemini adds it despite instructions
-        const cleanText = text.replace(/```html/g, "").replace(/```/g, "")
+        // DEBUG: Log first 100 chars to see what it said
+        console.log("AI Text Response (truncated):", text.substring(0, 100))
 
-        return { content: cleanText }
+        // If no image found, DO NOT return text. It breaks the UI.
+        return { error: "AI generated text description instead of an image. Please try 'Image of [topic]'." }
+
     } catch (error) {
         console.error("Detailed Gemini Error:", error)
         return { error: `Gemini Error: ${error instanceof Error ? error.message : String(error)}` }

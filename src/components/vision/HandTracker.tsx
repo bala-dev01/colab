@@ -5,7 +5,8 @@ import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision"
 import { useStore } from "@/lib/store"
 
 // Constants for gesture detection
-const PINCH_THRESHOLD = 0.05 // Distance between thumb and index tip
+const PINCH_THRESHOLD = 0.06 // Trigger pinch
+const RELEASE_THRESHOLD = 0.08 // Release pinch (hysteresis to prevent flickering)
 
 export default function HandTracker() {
   const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -84,7 +85,15 @@ export default function HandTracker() {
                 Math.pow(indexTip.y - thumbTip.y, 2)
             )
             
-            const isPinching = distance < PINCH_THRESHOLD
+            // Hysteresis for pinch detection
+            const currentPinchState = useStore.getState().hand.isPinching
+            let isPinching = currentPinchState
+
+            if (distance < PINCH_THRESHOLD) {
+                isPinching = true
+            } else if (distance > RELEASE_THRESHOLD) {
+                isPinching = false
+            }
             
             // Update Store
             // MediaPipe: x calls from 0 (left) to 1 (right)

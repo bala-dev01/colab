@@ -20,7 +20,7 @@ export default function ChatOverlay() {
     // Call Server Action
     const result = await generateUI(input)
     
-    if (result.content) {
+    if ('content' in result && result.content) {
         // Add to 3D store
         addObject({
             id: Math.random().toString(36).substring(7),
@@ -31,7 +31,7 @@ export default function ChatOverlay() {
             rotation: [0, 0, 0],
             scale: [1, 1, 1]
         })
-    } else if (result.error) {
+    } else if ('error' in result && result.error) {
         alert(result.error)
     }
 

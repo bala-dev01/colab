@@ -1,7 +1,7 @@
 "use client"
 
 import { Html } from "@react-three/drei"
-import { useRef } from "react"
+import { useRef, memo } from "react"
 import { type FloatingObject } from "@/lib/store"
 import { useStore } from "@/lib/store"
 import { useFrame } from "@react-three/fiber"
@@ -12,9 +12,8 @@ const SafeHtml = ({ html }: { html: string }) => {
     return <div dangerouslySetInnerHTML={{ __html: html }} />
 }
 
-export default function FloatingElement({ data }: { data: FloatingObject }) {
+function FloatingElement({ data }: { data: FloatingObject }) {
     const groupRef = useRef<any>(null)
-    const { hand } = useStore() // Get hand state
     const updateObject = useStore((state) => state.updateObject)
     
     // Interaction State
@@ -22,9 +21,8 @@ export default function FloatingElement({ data }: { data: FloatingObject }) {
     const dragOffset = useRef(new Vector3())
     
     useFrame((state) => {
-        // Simple Drag Logic:
-        // If hand is pinching AND bubbling collision logic matches this object...
-        // For MVP, if hand is close to object center and pinching, start drag.
+        // Access fresh state directly without triggering re-renders
+        const { hand } = useStore.getState()
         
         if (!groupRef.current) return
         
@@ -38,19 +36,26 @@ export default function FloatingElement({ data }: { data: FloatingObject }) {
         const objPos = groupRef.current.position 
         const dist = handPos.distanceTo(objPos)
         
+        // Debug logging (throttled)
+        if (Math.random() < 0.01) {
+             // console.log("Dist:", dist, "Pinch:", hand.isPinching, "Dragging:", isDragging.current)
+        }
+
         if (hand.isPinching) {
-            // Pick up if close enough (0.5 units)
-            if (dist < 0.5 && !isDragging.current) {
-                // Check if another object isn't already being dragged? (Global store 'draggedID')
-                // For MVP, simplest logic:
+            // Pick up if close enough (1.2 units - significantly larger interaction zone)
+            if (dist < 1.2 && !isDragging.current) {
                 isDragging.current = true
+                
+                // Calculate OFFSET: Vector from Hand to Object Center
+                dragOffset.current.subVectors(groupRef.current.position, handPos)
             }
             
             if (isDragging.current) {
-                // Follow hand
-                // Update global state so it persists if we unmount/remount
-                // Smooth follow
-                groupRef.current.position.lerp(handPos, 0.2)
+                // Target Position = Hand Position + Initial Offset
+                const targetPos = new Vector3().addVectors(handPos, dragOffset.current)
+                
+                // Smooth follow - increased lerp for more responsive movement
+                groupRef.current.position.lerp(targetPos, 0.8)
             }
         } else {
             // Release
@@ -74,8 +79,11 @@ export default function FloatingElement({ data }: { data: FloatingObject }) {
                 distanceFactor={1.5}
                 position={[0, 0, 0]}
                 style={{
-                    pointerEvents: 'none', // Let clicks pass through, we use hand tracking
-                    userSelect: 'none'
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                    willChange: 'transform', // GPU acceleration hint
+                    backfaceVisibility: 'hidden', // Reduce repaints
+                    transform: 'translateZ(0)' // Force GPU layer
                 }}
             >
                 <div className="w-64 max-w-sm pointer-events-none select-none">
@@ -85,3 +93,12 @@ export default function FloatingElement({ data }: { data: FloatingObject }) {
         </group>
     )
 }
+
+// Memoize to prevent unnecessary re-renders
+export default memo(FloatingElement, (prev, next) => {
+    return prev.data.id === next.data.id && 
+           prev.data.content === next.data.content &&
+           prev.data.position[0] === next.data.position[0] &&
+           prev.data.position[1] === next.data.position[1] &&
+           prev.data.position[2] === next.data.position[2]
+})

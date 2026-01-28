@@ -28,8 +28,14 @@ export default function Scene() {
     <div className="absolute inset-0 z-20 pointer-events-none">
       <Canvas
         dpr={[1, 2]}
-        gl={{ alpha: true, antialias: true }}
+        gl={{ 
+          alpha: true, 
+          antialias: true,
+          powerPreference: 'high-performance' // Use dedicated GPU
+        }}
         camera={{ position: [0, 0, 5], fov: 75 }}
+        frameloop="always" // Ensure continuous rendering
+        performance={{ min: 0.5 }} // Adaptive performance
         style={{ pointerEvents: 'none' }} // Let clicks pass through to video/ui
       >
         <Suspense fallback={null}>
