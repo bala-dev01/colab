@@ -1,0 +1,24 @@
+{
+    "addOns": {
+        "common": {
+            "name": "Ghost Canvas",
+            "logoUrl": "https://www.gstatic.com/images/icons/material/system/1x/brush_black_48dp.png",
+            "layoutProperties": {
+                "primaryColor": "#00ff88",
+                "secondaryColor": "#000000"
+            }
+        },
+        "meet": {
+            "webApp": {
+                "sidePanelUri": "https://ghost-canvas.vercel.app/",
+                "logoUrl": "https://www.gstatic.com/images/icons/material/system/1x/brush_black_48dp.png",
+                "addOnId": "ghost-canvas-hackathon",
+                "title": "Ghost Canvas AR"
+            }
+        }
+    },
+    "oauthScopes": [
+        "https://www.googleapis.com/auth/meetings.space.readonly",
+        "https://www.googleapis.com/auth/userinfo.email"
+    ]
+}
