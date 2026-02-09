@@ -23,7 +23,7 @@ export default function Home() {
         {/* Layer 3: UI Overlay (HUD) */}
         <div className="absolute inset-0 z-30 pointer-events-none">
           <div className="p-8 text-white">
-            <h1 className="text-4xl font-bold tracking-tighter opacity-50">GHOST CANVAS</h1>
+            <h1 className="text-4xl font-bold tracking-tighter opacity-50">COLAB</h1>
              <p className="text-sm opacity-70">Gemini 3 Hackathon Build</p>
           </div>
           

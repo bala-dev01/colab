@@ -102,7 +102,7 @@ export const useStore = create<AppState>((set, get) => ({
                 objects: []
             }
 
-            const saved = localStorage.getItem('ghost-canvas-canvases')
+            const saved = localStorage.getItem('colab-canvases')
             if (saved) {
                 const metadata = JSON.parse(saved)
                 const savedCanvases = metadata.map((m: any) => ({
@@ -156,7 +156,7 @@ export const useStore = create<AppState>((set, get) => ({
                     name: c.name,
                     createdAt: c.createdAt
                 }))
-                localStorage.setItem('ghost-canvas-canvases', JSON.stringify(canvasMetadata))
+                localStorage.setItem('colab-canvases', JSON.stringify(canvasMetadata))
             } catch (e) {
                 console.warn('Failed to save canvas metadata:', e)
             }
@@ -200,7 +200,7 @@ export const useStore = create<AppState>((set, get) => ({
                     name: c.name,
                     createdAt: c.createdAt
                 }))
-                localStorage.setItem('ghost-canvas-canvases', JSON.stringify(canvasMetadata))
+                localStorage.setItem('colab-canvases', JSON.stringify(canvasMetadata))
             } catch (e) {
                 console.warn('Failed to save canvas metadata:', e)
             }
@@ -220,7 +220,7 @@ export const useStore = create<AppState>((set, get) => ({
                     name: c.name,
                     createdAt: c.createdAt
                 }))
-                localStorage.setItem('ghost-canvas-canvases', JSON.stringify(canvasMetadata))
+                localStorage.setItem('colab-canvases', JSON.stringify(canvasMetadata))
             } catch (e) {
                 console.warn('Failed to save canvas metadata:', e)
             }

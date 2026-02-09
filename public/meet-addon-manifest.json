@@ -1,7 +1,7 @@
 {
     "addOns": {
         "common": {
-            "name": "Ghost Canvas - AI Collaborative AR",
+            "name": "CoLab - AI Collaborative AR",
             "logoUrl": "https://ghost-canvas.vercel.app/logo.png",
             "layoutProperties": {
                 "primaryColor": "#6366f1",
@@ -12,8 +12,8 @@
             "webApp": {
                 "sidePanelUri": "https://ghost-canvas.vercel.app",
                 "logoUrl": "https://ghost-canvas.vercel.app/logo.png",
-                "addOnId": "ghost-canvas-ai-workspace",
-                "title": "Ghost Canvas AR Workspace",
+                "addOnId": "colab-ai-workspace",
+                "title": "CoLab AR Workspace",
                 "cloudProjectNumber": "739296041068"
             }
         }

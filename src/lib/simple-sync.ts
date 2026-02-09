@@ -7,7 +7,7 @@ export const initSimpleSync = (sessionId: string) => {
     if (typeof window === 'undefined') return
 
     // Create a broadcast channel for this session
-    channel = new BroadcastChannel(`ghost-canvas-${sessionId}`)
+    channel = new BroadcastChannel(`colab-${sessionId}`)
 
     console.log('✅ Simple Sync Initialized for session:', sessionId)
 
