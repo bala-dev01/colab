@@ -15,9 +15,8 @@ export async function generateUI(prompt: string) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
     try {
-        // Using Gemini 2.5 Flash Image (codename: Nano Banana)
-        // Fast, efficient image generation model
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" })
+        // Using Gemini 3 Pro Image Preview - specialized for image generation
+        const model = genAI.getGenerativeModel({ model: "gemini-3-pro-image-preview" })
 
         console.log("Generating Image for prompt:", prompt)
 

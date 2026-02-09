@@ -1,11 +1,16 @@
+"use client"
+
 import WebcamFeed from "@/components/vision/WebcamFeed"
 import HandTracker from "@/components/vision/HandTracker"
 import Scene from "@/components/canvas/Scene"
 import ChatOverlay from "@/components/interface/ChatOverlay"
 import TwoHandIndicator from "@/components/interface/TwoHandIndicator"
 import CanvasManager from "@/components/interface/CanvasManager"
+import { useStore } from "@/lib/store"
 
 export default function Home() {
+  const currentCanvasId = useStore((state) => state.currentCanvasId)
+  
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
       <div className="relative w-screen h-screen bg-black overflow-hidden">
@@ -18,7 +23,7 @@ export default function Home() {
         </div>
 
         {/* Layer 2: 3D Spatial Overlay */}
-        <Scene />
+        <Scene canvasId={currentCanvasId} />
 
         {/* Layer 3: UI Overlay (HUD) */}
         <div className="absolute inset-0 z-30 pointer-events-none">

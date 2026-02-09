@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
         const base64Image = buffer.toString('base64')
 
         // Use same model as actions.ts which is confirmed working
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-image' })
+        const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
 
         const prompt = 'Look at this handwritten text image and return ONLY the text you see. If you cannot read any text, return an empty response. Do not include any explanations.'
 

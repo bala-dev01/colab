@@ -137,15 +137,19 @@ export const useStore = create<AppState>((set, get) => ({
             objects: []
         }
         set((state) => {
-            const newCanvases = [...state.canvases, newCanvas]
             // Save current canvas objects before switching
             const updatedCanvases = state.canvases.map(c =>
                 c.id === state.currentCanvasId ? { ...c, objects: state.objects } : c
             )
+
+            console.log('[CREATE CANVAS] Switching to new canvas:', newCanvas.id)
+            console.log('[CREATE CANVAS] Current objects being saved:', state.objects.length)
+            console.log('[CREATE CANVAS] New canvas will have 0 objects')
+
             return {
                 canvases: [...updatedCanvases, newCanvas],
                 currentCanvasId: newCanvas.id,
-                objects: []
+                objects: [] // CRITICAL: Clear objects for new canvas
             }
         })
         if (typeof window !== 'undefined') {
@@ -165,16 +169,20 @@ export const useStore = create<AppState>((set, get) => ({
 
     switchCanvas: (canvasId: string) => {
         set((state) => {
-            // Save current canvas objects
+            // Save current canvas objects before switching
             const updatedCanvases = state.canvases.map(c =>
                 c.id === state.currentCanvasId ? { ...c, objects: state.objects } : c
             )
             const canvas = updatedCanvases.find(c => c.id === canvasId)
             if (canvas) {
+                console.log('[SWITCH CANVAS] From:', state.currentCanvasId, 'To:', canvasId)
+                console.log('[SWITCH CANVAS] Saving', state.objects.length, 'objects from current canvas')
+                console.log('[SWITCH CANVAS] Loading', (canvas.objects || []).length, 'objects for new canvas')
+
                 return {
                     canvases: updatedCanvases,
                     currentCanvasId: canvasId,
-                    objects: canvas.objects
+                    objects: canvas.objects || [] // Ensure empty array if no objects
                 }
             }
             return state
@@ -240,8 +248,18 @@ export const useStore = create<AppState>((set, get) => ({
 
         if (result) {
             // Listen to all objects in this session
+            // NOTE: Firebase sync only applies to the first/default canvas
+            // Other canvases are local-only to prevent conflicts
             listenToObjects(sessionId, (objects) => {
-                set({ objects })
+                const currentState = get()
+                // Only update if we're on the default canvas (first canvas in the list)
+                // This prevents Firebase from overwriting objects in other canvases
+                if (currentState.currentCanvasId === currentState.canvases[0]?.id) {
+                    console.log('📥 Applying Firebase update to synced canvas')
+                    set({ objects })
+                } else {
+                    console.log('📥 Ignoring Firebase update (not on synced canvas)')
+                }
             })
         }
     },

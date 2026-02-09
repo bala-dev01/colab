@@ -9,6 +9,8 @@ import { useStore } from "@/lib/store"
 function SceneContent() {
     const objects = useStore((state) => state.objects)
     
+    console.log('[SCENE] Rendering with', objects.length, 'objects')
+    
     return (
         <>
             <ambientLight intensity={0.5} />
@@ -23,9 +25,9 @@ function SceneContent() {
     )
 }
 
-export default function Scene() {
+export default function Scene({ canvasId }: { canvasId?: string }) {
   return (
-    <div className="absolute inset-0 z-20">
+    <div className="absolute inset-0 z-20" key={canvasId}>
       <Canvas
         dpr={[1, 2]}
         gl={{ 
