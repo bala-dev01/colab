@@ -156,8 +156,8 @@ function FloatingElement({ data }: { data: FloatingObject }) {
     return (
         <group 
             ref={groupRef} 
-            position={new Vector3(...data.position)}
-            scale={new Vector3(...data.scale)}
+            position={new Vector3(...(data.position || [0, 0, 0]))}
+            scale={new Vector3(...(data.scale || [1, 1, 1]))}
         >
             {/* Invisible mesh for mouse interaction - larger to cover entire content */}
             <mesh
