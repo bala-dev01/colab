@@ -33,7 +33,7 @@ export interface Canvas {
     objects: FloatingObject[]
 }
 
-interface AppState {
+export interface AppState {
     // Hand State
     hand: HandState
     setHand: (hand: Partial<HandState>) => void
@@ -56,6 +56,7 @@ interface AppState {
     selectedObjectId: string | null
     setSelectedObject: (id: string | null) => void
     meetSessionId: string | null
+    firebaseUnsubscribe: (() => void) | null // Track Firebase listener for cleanup
     initSync: (sessionId: string) => Promise<void>
     addObject: (obj: FloatingObject) => void
     updateObject: (id: string, updates: Partial<FloatingObject>) => void
@@ -179,10 +180,25 @@ export const useStore = create<AppState>((set, get) => ({
                 console.log('[SWITCH CANVAS] Saving', state.objects.length, 'objects from current canvas')
                 console.log('[SWITCH CANVAS] Loading', (canvas.objects || []).length, 'objects for new canvas')
 
+                // Unsubscribe from Firebase for old canvas
+                if (state.firebaseUnsubscribe) {
+                    state.firebaseUnsubscribe()
+                }
+
+                // Subscribe to Firebase for new canvas (if session active)
+                let newUnsubscribe = null
+                if (state.meetSessionId) {
+                    newUnsubscribe = listenToObjects(state.meetSessionId, canvasId, (objects: FloatingObject[]) => {
+                        console.log('📥 Firebase sync: Received', objects.length, 'objects for canvas', canvasId)
+                        set({ objects })
+                    })
+                }
+
                 return {
                     canvases: updatedCanvases,
                     currentCanvasId: canvasId,
-                    objects: canvas.objects || [] // Ensure empty array if no objects
+                    objects: canvas.objects || [], // Ensure empty array if no objects
+                    firebaseUnsubscribe: newUnsubscribe
                 }
             }
             return state
@@ -241,53 +257,50 @@ export const useStore = create<AppState>((set, get) => ({
 
     // Meet Session State
     meetSessionId: null,
+    firebaseUnsubscribe: null,
 
     initSync: async (sessionId: string) => {
+        const state = get()
+
+        // Unsubscribe from previous Firebase listener if exists
+        if (state.firebaseUnsubscribe) {
+            state.firebaseUnsubscribe()
+        }
+
         set({ meetSessionId: sessionId })
         const result = initFirebaseSync(sessionId)
 
         if (result) {
-            // DISABLED: Firebase sync disabled to ensure fresh canvas on each session
-            // Objects are now local-only per canvas
-            // To re-enable collaboration, uncomment the code below
-
-            /*
-            // Listen to all objects in this session
-            // NOTE: Firebase sync only applies to the first/default canvas
-            // Other canvases are local-only to prevent conflicts
-            listenToObjects(sessionId, (objects) => {
-                const currentState = get()
-                // Only update if we're on the default canvas (first canvas in the list)
-                // This prevents Firebase from overwriting objects in other canvases
-                if (currentState.currentCanvasId === currentState.canvases[0]?.id) {
-                    console.log('📥 Applying Firebase update to synced canvas')
-                    set({ objects })
-                } else {
-                    console.log('📥 Ignoring Firebase update (not on synced canvas)')
-                }
+            // Subscribe to Firebase for current canvas
+            const currentCanvasId = state.currentCanvasId
+            const unsubscribe = listenToObjects(sessionId, currentCanvasId, (objects: FloatingObject[]) => {
+                console.log('📥 Firebase sync: Received', objects.length, 'objects for canvas', currentCanvasId)
+                set({ objects })
             })
-            */
+
+            set({ firebaseUnsubscribe: unsubscribe })
         }
     },
 
     addObject: (obj) => {
         set((state) => {
             if (state.meetSessionId) {
-                broadcastObjectCreate(state.meetSessionId, obj)
+                broadcastObjectCreate(state.meetSessionId, state.currentCanvasId, obj)
             }
             return { objects: [...state.objects, obj] }
         })
     },
 
-    updateObject: (id, updates) =>
+    updateObject: (id, updates) => {
         set((state) => {
             if (state.meetSessionId) {
-                broadcastObjectUpdate(state.meetSessionId, id, updates)
+                broadcastObjectUpdate(state.meetSessionId, state.currentCanvasId, id, updates)
             }
             return {
                 objects: state.objects.map((obj) => (obj.id === id ? { ...obj, ...updates } : obj)),
             }
-        }),
+        })
+    },
 
     removeObject: (id) => set((state) => ({ objects: state.objects.filter((obj) => obj.id !== id) })),
 

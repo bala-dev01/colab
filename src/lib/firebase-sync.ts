@@ -34,37 +34,39 @@ export const initFirebaseSync = (sessionId: string) => {
     }
 }
 
-export const broadcastObjectCreate = (sessionId: string, object: FloatingObject) => {
+export const broadcastObjectCreate = (sessionId: string, canvasId: string, object: FloatingObject) => {
     if (!database) return
 
-    const objectsRef = ref(database, `sessions/${sessionId}/objects/${object.id}`)
+    const objectsRef = ref(database, `sessions/${sessionId}/canvases/${canvasId}/objects/${object.id}`)
     set(objectsRef, object)
-    console.log('📤 Broadcasting object creation to Firebase:', object.id)
+    console.log('📤 Broadcasting object creation to Firebase:', object.id, 'on canvas:', canvasId)
 }
 
-export const broadcastObjectUpdate = (sessionId: string, objectId: string, changes: Partial<FloatingObject>) => {
+export const broadcastObjectUpdate = (sessionId: string, canvasId: string, objectId: string, changes: Partial<FloatingObject>) => {
     if (!database) return
 
-    const objectRef = ref(database, `sessions/${sessionId}/objects/${objectId}`)
+    const objectRef = ref(database, `sessions/${sessionId}/canvases/${canvasId}/objects/${objectId}`)
     update(objectRef, changes)
 }
 
-export const listenToObjects = (sessionId: string, callback: (objects: FloatingObject[]) => void) => {
+export const listenToObjects = (sessionId: string, canvasId: string, callback: (objects: FloatingObject[]) => void) => {
     if (!database) return
 
-    const objectsRef = ref(database, `sessions/${sessionId}/objects`)
+    const objectsRef = ref(database, `sessions/${sessionId}/canvases/${canvasId}/objects`)
 
-    onValue(objectsRef, (snapshot) => {
+    const unsubscribe = onValue(objectsRef, (snapshot) => {
         const data = snapshot.val()
         if (data) {
             const objects = Object.values(data) as FloatingObject[]
-            console.log('📥 Received Firebase update:', objects.length, 'objects')
+            console.log('📥 Received Firebase update for canvas', canvasId, ':', objects.length, 'objects')
             callback(objects)
         } else {
             // No data in Firebase, return empty array
             callback([])
         }
     })
+
+    return unsubscribe
 }
 
 // Clear all objects from a Firebase session
