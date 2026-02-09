@@ -247,6 +247,11 @@ export const useStore = create<AppState>((set, get) => ({
         const result = initFirebaseSync(sessionId)
 
         if (result) {
+            // DISABLED: Firebase sync disabled to ensure fresh canvas on each session
+            // Objects are now local-only per canvas
+            // To re-enable collaboration, uncomment the code below
+
+            /*
             // Listen to all objects in this session
             // NOTE: Firebase sync only applies to the first/default canvas
             // Other canvases are local-only to prevent conflicts
@@ -261,6 +266,7 @@ export const useStore = create<AppState>((set, get) => ({
                     console.log('📥 Ignoring Firebase update (not on synced canvas)')
                 }
             })
+            */
         }
     },
 
