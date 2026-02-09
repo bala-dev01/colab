@@ -4,7 +4,6 @@ import Scene from "@/components/canvas/Scene"
 import ChatOverlay from "@/components/interface/ChatOverlay"
 import TwoHandIndicator from "@/components/interface/TwoHandIndicator"
 import CanvasManager from "@/components/interface/CanvasManager"
-import AirWritingCanvas from "@/components/vision/AirWritingCanvas"
 
 export default function Home() {
   return (
@@ -20,9 +19,6 @@ export default function Home() {
 
         {/* Layer 2: 3D Spatial Overlay */}
         <Scene />
-        
-        {/* Layer 2.5: Air Writing Canvas */}
-        <AirWritingCanvas />
 
         {/* Layer 3: UI Overlay (HUD) */}
         <div className="absolute inset-0 z-30 pointer-events-none">

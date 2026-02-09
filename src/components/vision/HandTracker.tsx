@@ -99,11 +99,12 @@ export default function HandTracker() {
             
             // Update primary hand state
             setHand({
-                isPresent: true,
                 x: 1 - indexTip.x, // Mirror flip for cursor coordination
                 y: indexTip.y,     // Y is standard (0 top, 1 bottom)
-                z: indexTip.z,
-                isPinching: isPinching
+                z: indexTip.z || 0,
+                isPresent: true,
+                isPinching,
+                isPointing: false  // Not needed without air writing
             })
             
             // TWO-HAND GESTURE DETECTION

@@ -39,10 +39,15 @@ export default function AirWritingCanvas() {
         const ctx = canvas.getContext('2d')
         if (!ctx) return
         
+        // Debug: Log hand state
+        console.log('Hand state:', { isPointing: hand.isPointing, isPresent: hand.isPresent, x: hand.x, y: hand.y })
+        
         // Check if pointing gesture (index finger extended, others closed)
         if (hand.isPointing && hand.isPresent) {
             const x = hand.x * canvas.width
             const y = hand.y * canvas.height
+            
+            console.log('Writing at:', x, y)
             
             if (!isWriting) {
                 setIsWriting(true)
@@ -124,7 +129,11 @@ export default function AirWritingCanvas() {
         }
     }
     
-    if (!isWriting && !isRecognizing) return null
+    // Debug: Log component mount
+    useEffect(() => {
+        console.log('AirWritingCanvas mounted!')
+        return () => console.log('AirWritingCanvas unmounted!')
+    }, [])
     
     return (
         <>
@@ -134,24 +143,26 @@ export default function AirWritingCanvas() {
                 style={{ mixBlendMode: 'screen' }}
             />
             
-            {/* Writing indicator */}
-            <div className="fixed top-24 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
-                <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-xl border border-white/20 rounded-full px-6 py-3 shadow-2xl">
-                    <div className="flex items-center gap-3">
-                        {isRecognizing ? (
-                            <>
-                                <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
-                                <span className="text-white font-medium">Recognizing...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Pencil className="w-5 h-5 text-cyan-400" />
-                                <span className="text-white font-medium">Writing Mode Active</span>
-                            </>
-                        )}
+            {/* Writing indicator - only show when active */}
+            {(isWriting || isRecognizing) && (
+                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+                    <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-xl border border-white/20 rounded-full px-6 py-3 shadow-2xl">
+                        <div className="flex items-center gap-3">
+                            {isRecognizing ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+                                    <span className="text-white font-medium">Recognizing...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Pencil className="w-5 h-5 text-cyan-400" />
+                                    <span className="text-white font-medium">Writing Mode Active</span>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </>
     )
 }

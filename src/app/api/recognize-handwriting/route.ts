@@ -17,19 +17,20 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(bytes)
         const base64Image = buffer.toString('base64')
 
-        // Use Gemini Vision to recognize handwriting
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+        // Use same model as actions.ts which is confirmed working
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-image' })
+
+        const prompt = 'Look at this handwritten text image and return ONLY the text you see. If you cannot read any text, return an empty response. Do not include any explanations.'
 
         const result = await model.generateContent([
+            prompt,
             {
                 inlineData: {
                     mimeType: 'image/png',
                     data: base64Image
                 }
-            },
-            'Recognize and return ONLY the handwritten text in this image. If you see letters, numbers, or words, return them exactly as written. If the image is empty or you cannot recognize any text, return an empty string. Do not include any explanations or additional text.'
+            }
         ])
-
         const response = await result.response
         const text = response.text().trim()
 
