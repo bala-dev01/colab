@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient background -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#c084fc;stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#bg)"/>
+  
+  <!-- Hand icon -->
+  <path d="M256 140 L280 180 L320 160 L300 220 L340 240 L280 280 L240 340 L200 280 L160 260 L180 200 L140 180 L180 140 Z" 
+        fill="white" opacity="0.9"/>
+  
+  <!-- AI sparkle -->
+  <circle cx="360" cy="160" r="20" fill="url(#glow)"/>
+  <path d="M360 140 L365 155 L380 160 L365 165 L360 180 L355 165 L340 160 L355 155 Z" fill="white"/>
+  
+  <!-- Canvas frame -->
+  <rect x="180" y="300" width="160" height="120" rx="8" fill="none" stroke="white" stroke-width="6" opacity="0.7"/>
+</svg>

@@ -1,19 +1,20 @@
 {
     "addOns": {
         "common": {
-            "name": "Ghost Canvas",
-            "logoUrl": "https://www.gstatic.com/images/icons/material/system/1x/brush_black_48dp.png",
+            "name": "Ghost Canvas - AI Collaborative AR",
+            "logoUrl": "https://ghost-canvas.vercel.app/logo.png",
             "layoutProperties": {
-                "primaryColor": "#00ff88",
-                "secondaryColor": "#000000"
+                "primaryColor": "#6366f1",
+                "secondaryColor": "#8b5cf6"
             }
         },
         "meet": {
             "webApp": {
-                "sidePanelUri": "https://ghost-canvas.vercel.app/",
-                "logoUrl": "https://www.gstatic.com/images/icons/material/system/1x/brush_black_48dp.png",
-                "addOnId": "ghost-canvas-hackathon",
-                "title": "Ghost Canvas AR"
+                "sidePanelUri": "https://ghost-canvas.vercel.app",
+                "logoUrl": "https://ghost-canvas.vercel.app/logo.png",
+                "addOnId": "ghost-canvas-ai-workspace",
+                "title": "Ghost Canvas AR Workspace",
+                "cloudProjectNumber": "739296041068"
             }
         }
     },

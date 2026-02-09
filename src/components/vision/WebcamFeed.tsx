@@ -21,6 +21,7 @@ export default function WebcamFeed({ className }: WebcamFeedProps) {
             height: { ideal: 720 },
             facingMode: "user",
           },
+          audio: true, // Request microphone permission
         }
         const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
         setStream(mediaStream)
@@ -29,7 +30,7 @@ export default function WebcamFeed({ className }: WebcamFeedProps) {
         }
       } catch (err) {
         console.error("Error accessing webcam:", err)
-        setError("Could not access camera. Please allow camera permissions.")
+        setError("Could not access camera/microphone. Please allow permissions.")
       }
     }
 

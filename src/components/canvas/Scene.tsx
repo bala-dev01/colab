@@ -25,7 +25,7 @@ function SceneContent() {
 
 export default function Scene() {
   return (
-    <div className="absolute inset-0 z-20 pointer-events-none">
+    <div className="absolute inset-0 z-20">
       <Canvas
         dpr={[1, 2]}
         gl={{ 
@@ -36,7 +36,6 @@ export default function Scene() {
         camera={{ position: [0, 0, 5], fov: 75 }}
         frameloop="always" // Ensure continuous rendering
         performance={{ min: 0.5 }} // Adaptive performance
-        style={{ pointerEvents: 'none' }} // Let clicks pass through to video/ui
       >
         <Suspense fallback={null}>
             <SceneContent />
