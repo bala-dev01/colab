@@ -94,16 +94,34 @@ export const useStore = create<AppState>((set, get) => ({
         if (typeof window === 'undefined') return
 
         try {
+            // Always create a fresh session canvas
+            const sessionCanvas: Canvas = {
+                id: `session-${Date.now()}`,
+                name: `Session ${new Date().toLocaleTimeString()}`,
+                createdAt: Date.now(),
+                objects: []
+            }
+
             const saved = localStorage.getItem('ghost-canvas-canvases')
             if (saved) {
                 const metadata = JSON.parse(saved)
-                const canvases = metadata.map((m: any) => ({
+                const savedCanvases = metadata.map((m: any) => ({
                     ...m,
                     objects: []
                 }))
+
+                // Put new session canvas first, then saved canvases
                 set({
-                    canvases,
-                    currentCanvasId: canvases[0]?.id || 'default'
+                    canvases: [sessionCanvas, ...savedCanvases],
+                    currentCanvasId: sessionCanvas.id,
+                    objects: [] // Start with empty canvas
+                })
+            } else {
+                // No saved canvases, just use the new session canvas
+                set({
+                    canvases: [sessionCanvas],
+                    currentCanvasId: sessionCanvas.id,
+                    objects: []
                 })
             }
         } catch (e) {
