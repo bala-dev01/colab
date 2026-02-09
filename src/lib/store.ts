@@ -94,12 +94,12 @@ export const useStore = create<AppState>((set, get) => ({
         if (typeof window === 'undefined') return
 
         try {
-            // Always create a fresh session canvas
+            // Always create a fresh, empty session canvas on page load
             const sessionCanvas: Canvas = {
                 id: `session-${Date.now()}`,
                 name: `Session ${new Date().toLocaleTimeString()}`,
                 createdAt: Date.now(),
-                objects: []
+                objects: [] // ALWAYS start empty
             }
 
             const saved = localStorage.getItem('colab-canvases')
@@ -107,21 +107,21 @@ export const useStore = create<AppState>((set, get) => ({
                 const metadata = JSON.parse(saved)
                 const savedCanvases = metadata.map((m: any) => ({
                     ...m,
-                    objects: []
+                    objects: [] // Don't load objects from localStorage
                 }))
 
-                // Put new session canvas first, then saved canvases
+                // Session canvas first, then saved canvases
                 set({
                     canvases: [sessionCanvas, ...savedCanvases],
                     currentCanvasId: sessionCanvas.id,
-                    objects: [] // Start with empty canvas
+                    objects: [] // Start with empty canvas - Firebase will sync if needed
                 })
             } else {
                 // No saved canvases, just use the new session canvas
                 set({
                     canvases: [sessionCanvas],
                     currentCanvasId: sessionCanvas.id,
-                    objects: []
+                    objects: [] // Start empty
                 })
             }
         } catch (e) {

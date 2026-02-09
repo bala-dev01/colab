@@ -60,6 +60,18 @@ export const listenToObjects = (sessionId: string, callback: (objects: FloatingO
             const objects = Object.values(data) as FloatingObject[]
             console.log('📥 Received Firebase update:', objects.length, 'objects')
             callback(objects)
+        } else {
+            // No data in Firebase, return empty array
+            callback([])
         }
     })
+}
+
+// Clear all objects from a Firebase session
+export const clearSessionObjects = (sessionId: string) => {
+    if (!database) return
+
+    const objectsRef = ref(database, `sessions/${sessionId}/objects`)
+    set(objectsRef, null) // Clear all objects
+    console.log('🗑️ Cleared Firebase session:', sessionId)
 }

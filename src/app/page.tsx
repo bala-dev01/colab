@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import WebcamFeed from "@/components/vision/WebcamFeed"
 import HandTracker from "@/components/vision/HandTracker"
 import Scene from "@/components/canvas/Scene"
@@ -7,10 +8,15 @@ import ChatOverlay from "@/components/interface/ChatOverlay"
 import TwoHandIndicator from "@/components/interface/TwoHandIndicator"
 import CanvasManager from "@/components/interface/CanvasManager"
 import { useStore } from "@/lib/store"
+import { clearSessionObjects } from "@/lib/firebase-sync"
 
 export default function Home() {
   const currentCanvasId = useStore((state) => state.currentCanvasId)
   
+  // Clear Firebase session on page load for fresh start
+  useEffect(() => {
+    clearSessionObjects('demo-session')
+  }, [])
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
       <div className="relative w-screen h-screen bg-black overflow-hidden">
