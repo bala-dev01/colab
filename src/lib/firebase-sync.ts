@@ -77,3 +77,35 @@ export const clearSessionObjects = (sessionId: string) => {
     set(objectsRef, null) // Clear all objects
     console.log('🗑️ Cleared Firebase session:', sessionId)
 }
+
+// Sync canvas metadata to Firebase
+export const syncCanvasMetadata = (sessionId: string, canvases: any[]) => {
+    if (!database) return
+
+    // Only sync non-session canvases (exclude temporary session canvas)
+    const canvasesToSync = canvases.filter(c => !c.id.startsWith('session-'))
+
+    const metadataRef = ref(database, `sessions/${sessionId}/canvases-metadata`)
+    set(metadataRef, canvasesToSync)
+    console.log('📤 Synced canvas metadata:', canvasesToSync.length, 'canvases')
+}
+
+// Listen to canvas metadata changes
+export const listenToCanvasMetadata = (sessionId: string, callback: (canvases: any[]) => void) => {
+    if (!database) return
+
+    const metadataRef = ref(database, `sessions/${sessionId}/canvases-metadata`)
+
+    const unsubscribe = onValue(metadataRef, (snapshot) => {
+        const data = snapshot.val()
+        if (data) {
+            const canvases = Array.isArray(data) ? data : Object.values(data)
+            console.log('📥 Received canvas metadata update:', canvases.length, 'canvases')
+            callback(canvases)
+        } else {
+            callback([])
+        }
+    })
+
+    return unsubscribe
+}

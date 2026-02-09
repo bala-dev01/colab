@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { initFirebaseSync, broadcastObjectCreate, broadcastObjectUpdate, listenToObjects } from './firebase-sync'
+import { initFirebaseSync, broadcastObjectCreate, broadcastObjectUpdate, listenToObjects, syncCanvasMetadata, listenToCanvasMetadata } from './firebase-sync'
 
 export interface HandState {
     x: number // Normalized 0-1
@@ -57,6 +57,7 @@ export interface AppState {
     setSelectedObject: (id: string | null) => void
     meetSessionId: string | null
     firebaseUnsubscribe: (() => void) | null // Track Firebase listener for cleanup
+    canvasMetadataUnsubscribe: (() => void) | null // Track canvas metadata listener
     initSync: (sessionId: string) => Promise<void>
     addObject: (obj: FloatingObject) => void
     updateObject: (id: string, updates: Partial<FloatingObject>) => void
@@ -131,13 +132,14 @@ export const useStore = create<AppState>((set, get) => ({
     },
 
     createCanvas: (name: string) => {
-        const newCanvas: Canvas = {
-            id: `canvas-${Date.now()}`,
-            name,
-            createdAt: Date.now(),
-            objects: []
-        }
         set((state) => {
+            const newCanvas: Canvas = {
+                id: `canvas-${Date.now()}`,
+                name,
+                createdAt: Date.now(),
+                objects: []
+            }
+
             // Save current canvas objects before switching
             const updatedCanvases = state.canvases.map(c =>
                 c.id === state.currentCanvasId ? { ...c, objects: state.objects } : c
@@ -147,8 +149,15 @@ export const useStore = create<AppState>((set, get) => ({
             console.log('[CREATE CANVAS] Current objects being saved:', state.objects.length)
             console.log('[CREATE CANVAS] New canvas will have 0 objects')
 
+            const finalCanvases = [...updatedCanvases, newCanvas]
+
+            // Sync to Firebase if session active
+            if (state.meetSessionId) {
+                syncCanvasMetadata(state.meetSessionId, finalCanvases)
+            }
+
             return {
-                canvases: [...updatedCanvases, newCanvas],
+                canvases: finalCanvases,
                 currentCanvasId: newCanvas.id,
                 objects: [] // CRITICAL: Clear objects for new canvas
             }
@@ -211,11 +220,17 @@ export const useStore = create<AppState>((set, get) => ({
             if (canvases.length === 0) return state // Keep at least one canvas
 
             const newCurrentId = canvases[0].id
-            return {
+            const newCanvasesState = {
                 canvases,
                 currentCanvasId: newCurrentId,
                 objects: canvases[0].objects
             }
+
+            // Sync to Firebase if session active
+            if (state.meetSessionId) {
+                syncCanvasMetadata(state.meetSessionId, canvases)
+            }
+            return newCanvasesState
         })
         if (typeof window !== 'undefined') {
             try {
@@ -232,11 +247,16 @@ export const useStore = create<AppState>((set, get) => ({
     },
 
     renameCanvas: (canvasId: string, newName: string) => {
-        set((state) => ({
-            canvases: state.canvases.map(c =>
+        set((state) => {
+            const updatedCanvases = state.canvases.map(c =>
                 c.id === canvasId ? { ...c, name: newName } : c
             )
-        }))
+            // Sync to Firebase if session active
+            if (state.meetSessionId) {
+                syncCanvasMetadata(state.meetSessionId, updatedCanvases)
+            }
+            return { canvases: updatedCanvases }
+        })
         if (typeof window !== 'undefined') {
             try {
                 const canvasMetadata = get().canvases.map(c => ({
@@ -258,27 +278,54 @@ export const useStore = create<AppState>((set, get) => ({
     // Meet Session State
     meetSessionId: null,
     firebaseUnsubscribe: null,
+    canvasMetadataUnsubscribe: null,
 
     initSync: async (sessionId: string) => {
         const state = get()
 
-        // Unsubscribe from previous Firebase listener if exists
+        // Unsubscribe from previous Firebase listeners if they exist
         if (state.firebaseUnsubscribe) {
             state.firebaseUnsubscribe()
+        }
+        if (state.canvasMetadataUnsubscribe) {
+            state.canvasMetadataUnsubscribe()
         }
 
         set({ meetSessionId: sessionId })
         const result = initFirebaseSync(sessionId)
 
         if (result) {
-            // Subscribe to Firebase for current canvas
+            // Subscribe to Firebase for current canvas objects
             const currentCanvasId = state.currentCanvasId
-            const unsubscribe = listenToObjects(sessionId, currentCanvasId, (objects: FloatingObject[]) => {
+            const objectsUnsubscribe = listenToObjects(sessionId, currentCanvasId, (objects: FloatingObject[]) => {
                 console.log('📥 Firebase sync: Received', objects.length, 'objects for canvas', currentCanvasId)
                 set({ objects })
             })
 
-            set({ firebaseUnsubscribe: unsubscribe })
+            // Subscribe to canvas metadata changes
+            const metadataUnsubscribe = listenToCanvasMetadata(sessionId, (firebaseCanvases) => {
+                const currentState = get()
+                // Merge Firebase canvases with local session canvas
+                const sessionCanvas = currentState.canvases.find(c => c.id.startsWith('session-'))
+
+                // Ensure all Firebase canvases have objects property initialized
+                const canvasesWithObjects = firebaseCanvases.map(c => ({
+                    ...c,
+                    objects: c.objects || [] // Initialize objects if not present
+                }))
+
+                const mergedCanvases = sessionCanvas
+                    ? [sessionCanvas, ...canvasesWithObjects]
+                    : canvasesWithObjects
+
+                console.log('📥 Canvas metadata update: Merged', mergedCanvases.length, 'canvases')
+                set({ canvases: mergedCanvases })
+            })
+
+            set({
+                firebaseUnsubscribe: objectsUnsubscribe,
+                canvasMetadataUnsubscribe: metadataUnsubscribe
+            })
         }
     },
 
